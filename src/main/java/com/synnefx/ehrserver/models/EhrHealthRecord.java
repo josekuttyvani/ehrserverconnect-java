@@ -2,14 +2,13 @@ package com.synnefx.ehrserver.models;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.time.Instant;
 import java.util.Date;
 
 /**
  * @author Josekutty
  * 20-11-2019
  */
-public class HealthRecord extends EhrEntity {
+public class EhrHealthRecord extends EhrEntity {
 
     @SerializedName("dateCreated")
     private Date dateCreated;

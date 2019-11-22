@@ -1,13 +1,20 @@
 package com.synnefx.ehrserver.models;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 /**
  * @author Josekutty
  * 20-11-2019
  */
-public class Organization extends EhrEntity {
+public class EhrOrganization extends EhrEntity {
 
+    @SerializedName("name")
+    @Expose
     private String name;
 
+    @SerializedName("number")
+    @Expose
     private String number;
 
     public String getName() {

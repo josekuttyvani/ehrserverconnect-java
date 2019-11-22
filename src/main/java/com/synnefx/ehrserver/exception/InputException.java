@@ -6,7 +6,7 @@ package com.synnefx.ehrserver.exception;
  */
 public class InputException extends EhrServerException {
     // initialize and call base exception constructor
-    public InputException(String message, int code){
+    public InputException(String message, int code) {
         super(message, code);
     }
 }

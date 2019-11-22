@@ -12,12 +12,12 @@ public class EhrServerException extends Throwable {
     public int code;
 
     // constructor that sets the message
-    public EhrServerException(String message){
+    public EhrServerException(String message) {
         this.message = message;
     }
 
     // constructor that sets the message and code
-    public EhrServerException(String message, int code){
+    public EhrServerException(String message, int code) {
         this.message = message;
         this.code = code;
     }

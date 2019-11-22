@@ -9,7 +9,7 @@ import org.junit.runners.Suite;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-        EhrServerConnectTest.class
+        EhrServerConnectTest.class, CompositionTest.class, EhrQueryTest.class
 })
 public class AppTest {
 }

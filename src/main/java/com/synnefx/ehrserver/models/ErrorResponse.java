@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.*;
 @XmlType(name = "versionsType", namespace = "http://schemas.openehr.org/v1", propOrder = {
         "type", "message", "code"
 })
-@XmlRootElement( name = "result" )
+@XmlRootElement(name = "result")
 public class ErrorResponse {
 
     @XmlElement

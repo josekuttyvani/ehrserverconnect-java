@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://schemas.openehr.org/v1" xmlns:v1="http://schemas.openehr.org/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <xs:import namespace="http://www.w3.org/2001/XMLSchema-instance" schemaLocation="xsi.xsd"/>
+    <xs:element name="versions">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element maxOccurs="unbounded" ref="v1:version"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="version">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:contribution"/>
+                <xs:element ref="v1:commit_audit"/>
+                <xs:element ref="v1:uid"/>
+                <xs:element ref="v1:data"/>
+                <xs:element ref="v1:lifecycle_state"/>
+            </xs:sequence>
+            <xs:attribute ref="xsi:type" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="contribution">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:id"/>
+                <xs:element ref="v1:namespace"/>
+                <xs:element ref="v1:type"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="commit_audit">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:system_id"/>
+                <xs:element ref="v1:committer"/>
+                <xs:element ref="v1:time_committed"/>
+                <xs:element ref="v1:change_type"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="system_id" type="xs:NCName"/>
+    <xs:element name="committer">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:external_ref"/>
+                <xs:element ref="v1:name"/>
+            </xs:sequence>
+            <xs:attribute ref="xsi:type" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="time_committed">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:value"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="change_type">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:value"/>
+                <xs:element ref="v1:defining_code"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="lifecycle_state">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:value"/>
+                <xs:element ref="v1:defining_code"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="id">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:value"/>
+            </xs:sequence>
+            <xs:attribute ref="xsi:type" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="namespace" type="xs:NMTOKEN"/>
+    <xs:element name="type" type="xs:NCName"/>
+    <xs:element name="external_ref">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:id"/>
+                <xs:element ref="v1:namespace"/>
+                <xs:element ref="v1:type"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="name">
+        <xs:complexType mixed="true">
+            <xs:sequence>
+                <xs:element minOccurs="0" maxOccurs="unbounded" ref="v1:value"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="value">
+        <xs:complexType mixed="true">
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="v1:defining_code"/>
+                <xs:element ref="v1:value"/>
+                <xs:element ref="v1:magnitude"/>
+                <xs:element ref="v1:units"/>
+            </xs:choice>
+            <xs:attribute ref="xsi:type"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="magnitude" type="xs:integer"/>
+    <xs:element name="units" type="xs:NCName"/>
+    <xs:element name="defining_code">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:terminology_id"/>
+                <xs:element ref="v1:code_string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="uid">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:value"/>
+            </xs:sequence>
+            <xs:attribute ref="xsi:type"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="data">
+        <xs:complexType>
+            <xs:sequence minOccurs="0">
+                <xs:choice maxOccurs="unbounded">
+                    <xs:element ref="v1:language"/>
+                    <xs:element ref="v1:name"/>
+                    <xs:element ref="v1:uid"/>
+                    <xs:element ref="v1:archetype_details"/>
+                    <xs:element ref="v1:category"/>
+                    <xs:element ref="v1:composer"/>
+                    <xs:element ref="v1:content"/>
+                    <xs:element ref="v1:context"/>
+                    <xs:element ref="v1:events"/>
+                    <xs:element ref="v1:origin"/>
+                    <xs:element ref="v1:territory"/>
+                </xs:choice>
+                <xs:element maxOccurs="unbounded" ref="v1:items"/>
+            </xs:sequence>
+            <xs:attribute name="archetype_node_id" use="required" type="xs:NCName"/>
+            <xs:attribute ref="xsi:type" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="archetype_details">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:archetype_id"/>
+                <xs:element ref="v1:template_id"/>
+                <xs:element ref="v1:rm_version"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="archetype_id">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:value"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="template_id">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:value"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="rm_version" type="xs:NMTOKEN"/>
+    <xs:element name="category">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:value"/>
+                <xs:element ref="v1:defining_code"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="composer">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:external_ref"/>
+                <xs:element ref="v1:name"/>
+            </xs:sequence>
+            <xs:attribute ref="xsi:type" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="content">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:name"/>
+                <xs:element ref="v1:language"/>
+                <xs:element ref="v1:encoding"/>
+                <xs:element ref="v1:subject"/>
+                <xs:element ref="v1:data"/>
+            </xs:sequence>
+            <xs:attribute name="archetype_node_id" use="required"/>
+            <xs:attribute ref="xsi:type" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="encoding">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:terminology_id"/>
+                <xs:element ref="v1:code_string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="subject">
+        <xs:complexType>
+            <xs:attribute ref="xsi:type" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="context">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:start_time"/>
+                <xs:element ref="v1:setting"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="start_time">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:value"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="setting">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:value"/>
+                <xs:element ref="v1:defining_code"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="events">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:name"/>
+                <xs:element ref="v1:time"/>
+                <xs:element ref="v1:data"/>
+            </xs:sequence>
+            <xs:attribute name="archetype_node_id" use="required" type="xs:NCName"/>
+            <xs:attribute ref="xsi:type" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="time">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:value"/>
+            </xs:sequence>
+            <xs:attribute ref="xsi:type" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="origin">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:value"/>
+            </xs:sequence>
+            <xs:attribute ref="xsi:type" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="territory">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:terminology_id"/>
+                <xs:element ref="v1:code_string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="items">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:name"/>
+                <xs:element ref="v1:value"/>
+            </xs:sequence>
+            <xs:attribute name="archetype_node_id" use="required" type="xs:NCName"/>
+            <xs:attribute ref="xsi:type" use="required"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="terminology_id">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:value"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="code_string" type="xs:NMTOKEN"/>
+    <xs:element name="language">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="v1:terminology_id"/>
+                <xs:element ref="v1:code_string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

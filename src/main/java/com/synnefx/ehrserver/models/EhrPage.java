@@ -6,10 +6,10 @@ package com.synnefx.ehrserver.models;
  */
 public class EhrPage {
 
-     private Long max;
+    private Long max;
     private Long offset;
-    private Long        nextOffset;
-    private Long       prevOffset;
+    private Long nextOffset;
+    private Long prevOffset;
 
     public Long getMax() {
         return max;

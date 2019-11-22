@@ -5,7 +5,7 @@ package com.synnefx.ehrserver.exception;
  * Default code is 403
  */
 public class PermissionException extends EhrServerException {
-    public PermissionException(String message, int code){
+    public PermissionException(String message, int code) {
         super(message, code);
     }
 }

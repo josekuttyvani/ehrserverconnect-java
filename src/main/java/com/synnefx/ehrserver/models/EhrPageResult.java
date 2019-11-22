@@ -8,7 +8,6 @@ public class EhrPageResult {
 
     private EhrPage pagination;
 
-
     public EhrPage getPagination() {
         return pagination;
     }

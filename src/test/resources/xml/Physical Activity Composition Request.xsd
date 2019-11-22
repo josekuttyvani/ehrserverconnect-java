@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://schemas.openehr.org/v1" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="versions" type="v1:versionsType" xmlns:v1="http://schemas.openehr.org/v1"/>
+  <xs:complexType name="committerType">
+    <xs:sequence>
+      <xs:element type="v1:external_refType" name="external_ref" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="xs:string" name="name"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="commit_auditType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="system_id"/>
+      <xs:element type="v1:committerType" name="committer" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:time_committedType" name="time_committed" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:change_typeType" name="change_type" xmlns:v1="http://schemas.openehr.org/v1"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="versionType">
+    <xs:sequence>
+      <xs:element type="v1:contributionType" name="contribution" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:commit_auditType" name="commit_audit" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:uidType" name="uid" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:dataType" name="data" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:lifecycle_stateType" name="lifecycle_state" xmlns:v1="http://schemas.openehr.org/v1"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="idType">
+    <xs:sequence>
+      <xs:element name="value">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="{% uuid 'v4' %}"/>
+            <xs:enumeration value="115e89c7-e7e6-4cb7-930b-4afe42ac8286"/>
+            <xs:enumeration value="50fccac5-0968-48d0-b5ed-4a0d519216ad"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="time_committedType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="value"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="languageType">
+    <xs:sequence>
+      <xs:element type="v1:terminology_idType" name="terminology_id" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="xs:string" name="code_string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="uidType">
+    <xs:sequence>
+      <xs:element name="value">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="11f2d75a-7e4a-4795-abea-178bc22606b2::CABOLABS_EHR::1"/>
+            <xs:enumeration value="1913b811-f501-44c0-844e-e2d116108800"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="external_refType">
+    <xs:sequence>
+      <xs:element type="v1:idType" name="id" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="xs:string" name="namespace"/>
+      <xs:element type="xs:string" name="type"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="archetype_detailsType">
+    <xs:sequence>
+      <xs:element type="v1:archetype_idType" name="archetype_id" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:template_idType" name="template_id" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="xs:string" name="rm_version"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="start_timeType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="value"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="dataType">
+    <xs:sequence>
+      <xs:element type="v1:nameType" name="name" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:itemsType" name="items" maxOccurs="unbounded" minOccurs="0" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:originType" name="origin" minOccurs="0" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:eventsType" name="events" minOccurs="0" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:uidType" name="uid" minOccurs="0" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:archetype_detailsType" name="archetype_details" minOccurs="0" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:languageType" name="language" minOccurs="0" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:territoryType" name="territory" minOccurs="0" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:categoryType" name="category" minOccurs="0" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:composerType" name="composer" minOccurs="0" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:contextType" name="context" minOccurs="0" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:contentType" name="content" minOccurs="0" xmlns:v1="http://schemas.openehr.org/v1"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="archetype_node_id" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="territoryType">
+    <xs:sequence>
+      <xs:element type="v1:terminology_idType" name="terminology_id" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="xs:string" name="code_string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="categoryType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="value"/>
+      <xs:element type="v1:defining_codeType" name="defining_code" xmlns:v1="http://schemas.openehr.org/v1"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="contributionType">
+    <xs:sequence>
+      <xs:element type="v1:idType" name="id" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="xs:string" name="namespace"/>
+      <xs:element type="xs:string" name="type"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="originType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="value"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="lifecycle_stateType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="value"/>
+      <xs:element type="v1:defining_codeType" name="defining_code" xmlns:v1="http://schemas.openehr.org/v1"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="itemsType">
+    <xs:sequence>
+      <xs:element type="v1:nameType" name="name" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:valueType" name="value" xmlns:v1="http://schemas.openehr.org/v1"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="archetype_node_id" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="encodingType">
+    <xs:sequence>
+      <xs:element type="v1:terminology_idType" name="terminology_id" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="xs:string" name="code_string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="timeType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="value"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="defining_codeType">
+    <xs:sequence>
+      <xs:element type="v1:terminology_idType" name="terminology_id" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element name="code_string">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="249"/>
+            <xs:enumeration value="433"/>
+            <xs:enumeration value="229"/>
+            <xs:enumeration value="at0010"/>
+            <xs:enumeration value="532"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="change_typeType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="value"/>
+      <xs:element type="v1:defining_codeType" name="defining_code" xmlns:v1="http://schemas.openehr.org/v1"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="eventsType">
+    <xs:sequence>
+      <xs:element type="v1:nameType" name="name" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:timeType" name="time" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:dataType" name="data" xmlns:v1="http://schemas.openehr.org/v1"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="archetype_node_id" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="template_idType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="value"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="terminology_idType">
+    <xs:sequence>
+      <xs:element name="value">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="openehr"/>
+            <xs:enumeration value="ISO_639-1"/>
+            <xs:enumeration value="ISO_3166-1"/>
+            <xs:enumeration value="Unicode"/>
+            <xs:enumeration value="local"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="versionsType">
+    <xs:sequence>
+      <xs:element type="v1:versionType" name="version" maxOccurs="unbounded" minOccurs="0" xmlns:v1="http://schemas.openehr.org/v1"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="settingType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="value"/>
+      <xs:element type="v1:defining_codeType" name="defining_code" xmlns:v1="http://schemas.openehr.org/v1"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="contentType">
+    <xs:sequence>
+      <xs:element type="v1:nameType" name="name" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:languageType" name="language" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:encodingType" name="encoding" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="xs:string" name="subject"/>
+      <xs:element type="v1:dataType" name="data" xmlns:v1="http://schemas.openehr.org/v1"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="archetype_node_id" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="archetype_idType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="value"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="nameType">
+    <xs:sequence>
+      <xs:element name="value">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Physical activity document"/>
+            <xs:enumeration value="Physical activity record"/>
+            <xs:enumeration value="Event Series"/>
+            <xs:enumeration value="Any event"/>
+            <xs:enumeration value="Tree"/>
+            <xs:enumeration value="Type of exercise"/>
+            <xs:enumeration value="Calory consumption"/>
+            <xs:enumeration value="Duration"/>
+            <xs:enumeration value="Notes"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="composerType">
+    <xs:sequence>
+      <xs:element type="v1:external_refType" name="external_ref" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="xs:string" name="name"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="contextType">
+    <xs:sequence>
+      <xs:element type="v1:start_timeType" name="start_time" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element type="v1:settingType" name="setting" xmlns:v1="http://schemas.openehr.org/v1"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="valueType">
+    <xs:sequence>
+      <xs:element name="value" minOccurs="0">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Push ups"/>
+            <xs:enumeration value="Test note added for pysical activity observation"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element type="v1:defining_codeType" name="defining_code" minOccurs="0" xmlns:v1="http://schemas.openehr.org/v1"/>
+      <xs:element name="magnitude" minOccurs="0">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="200"/>
+            <xs:enumeration value="5"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="units" minOccurs="0">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="cal"/>
+            <xs:enumeration value="min"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

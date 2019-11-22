@@ -7,7 +7,7 @@ package com.synnefx.ehrserver.exception;
 public class NetworkException extends EhrServerException {
 
     // initialize EHRServer Network exception
-    public NetworkException(String message, int code){
+    public NetworkException(String message, int code) {
         super(message, code);
     }
 }

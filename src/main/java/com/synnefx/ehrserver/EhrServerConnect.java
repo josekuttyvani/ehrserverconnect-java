@@ -1,23 +1,28 @@
 package com.synnefx.ehrserver;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
 import com.synnefx.ehrserver.exception.EhrServerException;
 import com.synnefx.ehrserver.http.EhrRequestHandler;
+import com.synnefx.ehrserver.http.ResponseType;
 import com.synnefx.ehrserver.http.SessionExpiryHook;
-import com.synnefx.ehrserver.models.HealthRecord;
-import com.synnefx.ehrserver.models.Organization;
-import com.synnefx.ehrserver.models.Template;
-import com.synnefx.ehrserver.xml.VersionsType;
+import com.synnefx.ehrserver.models.*;
+import com.synnefx.ehrserver.models.query.EhrQuery;
+import com.synnefx.ehrserver.models.query.EhrQueryParameter;
+import com.synnefx.ehrserver.utils.NotNull;
+import com.synnefx.ehrserver.utils.Nullable;
+import com.synnefx.ehrserver.utils.Utils;
+import com.synnefx.ehrserver.xsd.ORIGINALVERSION;
 import openEHR.v1.template.TemplateDocument;
+import org.apache.commons.lang.StringUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.openehr.am.template.OETParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.Proxy;
@@ -45,23 +50,29 @@ public class EhrServerConnect {
     private EhrRequestHandler ehrRequestHandler;
 
 
-    /** Initializes EHRServerConnect SDK with the api key provided for your app.
+    /**
+     * Initializes EHRServerConnect SDK with the api key provided for your app.
+     *
      * @param apiKey is the api key provided after creating new Organization on developers console.
      */
-    public EhrServerConnect(String apiKey){
+    public EhrServerConnect(String apiKey) {
         this(apiKey, null, false);
     }
 
-    /** Initializes EHRServerConnect SDK with the api key provided for your app.
-     * @param apiKey is the api key provided after creating new Organization on developers console.
+    /**
+     * Initializes EHRServerConnect SDK with the api key provided for your app.
+     *
+     * @param apiKey         is the api key provided after creating new Organization on developers console.
      * @param enableDebugLog is a boolean to enable debug logs
      */
-    public EhrServerConnect(String apiKey, boolean enableDebugLog){
+    public EhrServerConnect(String apiKey, boolean enableDebugLog) {
         this(apiKey, null, enableDebugLog);
     }
 
-    /** Initializes EHRServerConnect SDK with the api key provided for your app.
-     * @param apiKey is the api key provided after creating new Organization on developers console.
+    /**
+     * Initializes EHRServerConnect SDK with the api key provided for your app.
+     *
+     * @param apiKey    is the api key provided after creating new Organization on developers console.
      * @param userProxy is the user defined proxy. Can be used only if a user chose to use the proxy.
      */
     public EhrServerConnect(String apiKey, Proxy userProxy, boolean enableDebugLog) {
@@ -81,19 +92,22 @@ public class EhrServerConnect {
         ehrRequestHandler = new EhrRequestHandler(proxy);
     }
 
-    /** Registers callback for session error.
+    /**
+     * Registers callback for session error.
+     *
      * @param hook can be set to get callback when session is expired.
-     * */
-    public void setSessionExpiryHook(SessionExpiryHook hook){
+     */
+    public void setSessionExpiryHook(SessionExpiryHook hook) {
         sessionExpiryHook = hook;
     }
 
     /**
-     *  Returns apiKey of the App.
-     * @return  String apiKey is returned.
+     * Returns apiKey of the App.
+     *
+     * @return String apiKey is returned.
      * @throws NullPointerException if _apiKey is not found.
      */
-    public String getApiKey() throws NullPointerException{
+    public String getApiKey() throws NullPointerException {
         if (apiKey != null)
             return apiKey;
         else
@@ -101,13 +115,22 @@ public class EhrServerConnect {
     }
 
 
+    private void setPageRequest(EhrPageRequest pageRequest, Map<String, Object> params) {
+        if (null == pageRequest) {
+            pageRequest = new EhrPageRequest();
+        }
+        params.put("max", pageRequest.getMaxRecords());
+        params.put("offSet", pageRequest.getOffset());
+    }
+
     /**
      * Do the token exchange with the `request_token` obtained after the login flow,
      * and retrieve the `access_token` required for all subsequent requests.
+     *
      * @return User is the user model which contains user and session details.
      * @throws EhrServerException is thrown for all EHRServer related errors.
-     * @throws JSONException is thrown when there is exception while parsing response.
-     * @throws IOException is thrown when there is connection error.
+     * @throws JSONException      is thrown when there is exception while parsing response.
+     * @throws IOException        is thrown when there is connection error.
      */
     public String generateAccessToken(String userName, String password, String organization) throws EhrServerException, JSONException, IOException {
 
@@ -124,48 +147,66 @@ public class EhrServerConnect {
     }
 
 
-    public List<Organization> listOrganizations(String apiKey) throws IOException, EhrServerException {
+    public List<EhrOrganization> listOrganizations(String apiKey) throws IOException, EhrServerException {
         Map<String, Object> params = new HashMap<>();
         params.put("format", "json");
-        JSONObject response = ehrRequestHandler.getRequest(routes.get("organizations"), params, apiKey);
-        return Arrays.asList(gson.fromJson(response.toString(), Organization[].class));
+        String response = ehrRequestHandler.getRequest(routes.get("organizations"), params, ResponseType.JSON, apiKey);
+        return Arrays.asList(gson.fromJson(response, EhrOrganization[].class));
     }
 
-    public List<HealthRecord> listHealthRecords(String apiKey) throws IOException, EhrServerException {
+    public List<EhrHealthRecord> listHealthRecords(String apiKey, EhrPageRequest pageRequest) throws IOException, EhrServerException {
         Map<String, Object> params = new HashMap<>();
         params.put("format", "json");
+        setPageRequest(pageRequest, params);
         JSONObject response = ehrRequestHandler.getRequest(routes.get("ehrs"), params, apiKey);
-        return Arrays.asList(gson.fromJson(String.valueOf(response.get("ehrs")), HealthRecord[].class));
+        return Arrays.asList(gson.fromJson(String.valueOf(response.get("ehrs")), EhrHealthRecord[].class));
     }
 
-    public HealthRecord getHealthRecord(String ehrId, String apiKey) throws IOException, EhrServerException {
+    public EhrHealthRecord getHealthRecord(String ehrId, String apiKey) throws IOException, EhrServerException {
+        if (StringUtils.isEmpty(ehrId)) {
+            throw new IllegalArgumentException("Ehr id expected");
+        }
         Map<String, Object> params = new HashMap<>();
         params.put("format", "json");
         JSONObject response = ehrRequestHandler.getRequest(routes.get("ehr").replace(":ehr_id", ehrId), params, apiKey);
-        return gson.fromJson(String.valueOf(response), HealthRecord.class);
+        return gson.fromJson(String.valueOf(response), EhrHealthRecord.class);
     }
 
-    public HealthRecord createHealthRecord(HealthRecord healthRecord, String apiKey) throws IOException, EhrServerException {
+    public EhrHealthRecord getHealthRecordBySubject(String subjectId, String apiKey) throws IOException, EhrServerException {
+        if (StringUtils.isEmpty(subjectId)) {
+            throw new IllegalArgumentException("Subject id expected");
+        }
         Map<String, Object> params = new HashMap<>();
-        params.put("subjectUid",healthRecord.getSubjectUid());
+        params.put("format", "json");
+        JSONObject response = ehrRequestHandler.getRequest(routes.get("ehr.subject").replace(":subjectId", subjectId), params, apiKey);
+        return gson.fromJson(String.valueOf(response), EhrHealthRecord.class);
+    }
+
+    public EhrHealthRecord createHealthRecord(EhrHealthRecord healthRecord, String apiKey) throws IOException, EhrServerException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("subjectUid", healthRecord.getSubjectUid());
         params.put("format", "json");
         JSONObject response = ehrRequestHandler.postRequest(routes.get("ehrs"), params, apiKey);
-        return gson.fromJson(String.valueOf(response), HealthRecord.class);
+        return gson.fromJson(String.valueOf(response), EhrHealthRecord.class);
     }
 
 
-    public List<Template> listTemplates(String apiKey) throws IOException, EhrServerException {
+    public List<Template> listTemplates(String apiKey, EhrPageRequest pageRequest) throws IOException, EhrServerException {
         Map<String, Object> params = new HashMap<>();
         params.put("format", "json");
+        setPageRequest(pageRequest, params);
         JSONObject response = ehrRequestHandler.getRequest(routes.get("templates"), params, apiKey);
         return Arrays.asList(gson.fromJson(String.valueOf(response.get("templates")), Template[].class));
     }
 
     public TemplateDocument getTemplate(String templateUid, String apiKey) throws Exception, EhrServerException {
+        if (StringUtils.isEmpty(templateUid)) {
+            throw new IllegalArgumentException("Template Id expected");
+        }
         Map<String, Object> params = new HashMap<>();
         params.put("format", "xml");
-        String response = ehrRequestHandler.getXmlRequest(routes.get("template")
-                        .replace(":uid", templateUid), params, apiKey);
+        String response = ehrRequestHandler.getRequest(routes.get("template")
+                .replace(":uid", templateUid), params, ResponseType.XML, apiKey);
         //return Arrays.asList(gson.fromJson(String.valueOf(response.get("templates")), Template[].class));
         OETParser oetParser = new OETParser();
         return oetParser.parseTemplate(new ByteArrayInputStream(response.getBytes(StandardCharsets.UTF_8)));
@@ -176,19 +217,198 @@ public class EhrServerConnect {
         Map<String, Object> params = new HashMap<>();
         params.put("auditCommitter", committerName);
         params.put("format", "xml");
-        JSONObject response = ehrRequestHandler.postRequest(routes.get("compositions").replace(":ehr_id", ehrId),
-                composition,params, apiKey);
+        return ehrRequestHandler.postRequestForXml(routes.get("compositions").replace(":ehr_id", ehrId),
+                composition, params, apiKey);
         //return gson.fromJson(String.valueOf(response), HealthRecord.class);
-        return  String.valueOf(response);
+        //return  String.valueOf(response);
     }
 
-    public String createComposition(VersionsType versions, String committerName, String ehrId, String apiKey) throws IOException, EhrServerException {
+    public String createComposition(ORIGINALVERSION versions, String committerName, String ehrId, String apiKey) throws IOException, EhrServerException {
         Map<String, Object> params = new HashMap<>();
         params.put("auditCommitter", committerName);
         params.put("format", "xml");
-        JSONObject response = ehrRequestHandler.postRequest(routes.get("compositions").replace(":ehr_id", ehrId),
-                Utils.xmlToString(versions),params, apiKey);
+        return ehrRequestHandler.postRequestForXml(routes.get("compositions").replace(":ehr_id", ehrId),
+                Utils.formatComposionPaylod(versions), params, apiKey);
         //return gson.fromJson(String.valueOf(response), HealthRecord.class);
-        return  String.valueOf(response);
+        // return  String.valueOf(response);
     }
+
+    private List<EhrComposition> listCompositions(Map<String, Object> params, String archetypeId, String apiKey, EhrPageRequest pageRequest) throws IOException, EhrServerException {
+        if (StringUtils.isNotEmpty(archetypeId)) {
+            params.put("archetypeId", archetypeId);
+        }
+
+        params.put("format", "json");
+        setPageRequest(pageRequest, params);
+        JSONObject response = ehrRequestHandler.getRequest(routes.get("compositions.list"),
+                params, apiKey);
+        Object result = response.get("result");
+        if (result instanceof JSONObject) {
+            //Must be JSONArray
+            return Collections.emptyList();
+        }
+        return Arrays.asList(gson.fromJson(String.valueOf(result), EhrComposition[].class));
+    }
+
+    /**
+     * Get list of composition for a given EHR
+     *
+     * @param ehrId
+     * @param archetypeId - Optional
+     * @param apiKey
+     * @param pageRequest
+     * @return
+     * @throws IOException
+     * @throws EhrServerException
+     */
+    public List<EhrComposition> listCompositionByEhrId(@NotNull String ehrId, @Nullable String archetypeId, String apiKey, EhrPageRequest pageRequest) throws IOException, EhrServerException {
+        if (StringUtils.isEmpty(ehrId)) {
+            throw new IllegalArgumentException("Ehr Id expected");
+        }
+        Map<String, Object> params = new HashMap<>();
+        params.put("ehrUid", ehrId);
+        return listCompositions(params, archetypeId, apiKey, pageRequest);
+    }
+
+    /**
+     * Get list of composition for a given EHR
+     * Caution: Aleways ends up wuth error :
+     * {"result":{"type":"AR",
+     * "message":"EHR [$8d786d63-73d5-47bd-9ac4-7f6aec3be646$] doesn't belong to organization $e9d13294-bce7-44e7-9635-8e906da0c914$",
+     * "code":"EHRSERVER::API::RESPONSE_CODES::462"}}
+     *
+     * @param subjectId
+     * @param archetypeId - Optional
+     * @param apiKey
+     * @param pageRequest
+     * @return
+     * @throws IOException
+     * @throws EhrServerException
+     */
+    @Deprecated
+    public List<EhrComposition> listCompositionBySubjectId(@NotNull String subjectId, @Nullable String archetypeId, String apiKey, EhrPageRequest pageRequest) throws IOException, EhrServerException {
+        if (StringUtils.isEmpty(subjectId)) {
+            throw new IllegalArgumentException("Subject Id expected");
+        }
+        Map<String, Object> params = new HashMap<>();
+        params.put("subjectId", subjectId);
+
+        return listCompositions(params, archetypeId, apiKey, pageRequest);
+    }
+
+    /**
+     * Get an XML form of a given Composition
+     *
+     * @param compositionUid
+     * @param apiKey
+     * @return
+     * @throws IOException
+     * @throws EhrServerException
+     */
+    public String getComposition(@NotNull String compositionUid, String apiKey) throws IOException, EhrServerException {
+        if (StringUtils.isEmpty(compositionUid)) {
+            throw new IllegalArgumentException("Composition Id expected");
+        }
+        Map<String, Object> params = new HashMap<>();
+        params.put("format", "xml");
+        return ehrRequestHandler.getRequest(routes.get("compositions.get")
+                        .replace(":compositionUid",compositionUid),
+                params, ResponseType.XML, apiKey);
+        //return gson.fromJson(String.valueOf(response.get("result")), EhrComposition[].class);
+    }
+
+    /**
+     * Checkout a given composition
+     *
+     * @param compositionUid
+     * @param apiKey
+     * @return
+     * @throws IOException
+     * @throws EhrServerException
+     */
+    public String checkoutComposition(String ehrId, String compositionUid, String apiKey) throws IOException, EhrServerException {
+        if (StringUtils.isEmpty(ehrId)
+                || StringUtils.isEmpty(compositionUid)) {
+            throw new IllegalArgumentException("Ehr Id and Composition Id are expected");
+        }
+        Map<String, Object> params = new HashMap<>();
+        params.put("format", "xml");
+        return ehrRequestHandler.getRequest(routes.get("compositions.checkout")
+                        .replace(":ehr_id", ehrId)
+                        .replace(":compositionUid", compositionUid),
+                params, ResponseType.XML, apiKey);
+        //return gson.fromJson(String.valueOf(response.get("result")), EhrComposition[].class);
+    }
+
+
+    /**
+     * List all stored queries
+     *
+     * @param apiKey
+     * @param pageRequest
+     * @return
+     * @throws IOException
+     * @throws EhrServerException
+     */
+    public List<EhrQuery> listQueries(String apiKey, EhrPageRequest pageRequest) throws IOException, EhrServerException {
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("format", "json");
+        setPageRequest(pageRequest, params);
+        JSONObject response = ehrRequestHandler.getRequest(routes.get("queries"),
+                params, apiKey);
+        Object queryList = response.get("queries");
+        if (queryList instanceof JSONObject) {
+            //When query list is empty returned json is JSONObject not JSONArray.
+            return Collections.emptyList();
+        }
+        return Arrays.asList(gson.fromJson(String.valueOf(queryList), EhrQuery[].class));
+    }
+
+
+    /**
+     * Get the details od a given query
+     *
+     * @param queryId
+     * @param apiKey
+     * @return
+     * @throws IOException
+     * @throws EhrServerException
+     */
+    public EhrQuery getQuery(String queryId, String apiKey) throws IOException, EhrServerException {
+        if (StringUtils.isEmpty(queryId)) {
+            throw new IllegalArgumentException("Query Id expected");
+        }
+        Map<String, Object> params = new HashMap<>();
+        params.put("format", "json");
+        return gson.fromJson(String.valueOf(ehrRequestHandler.getRequest(routes.get("query")
+                        .replace(":queryId", queryId),
+                params, apiKey)), EhrQuery.class);
+    }
+
+
+    /**
+     * Get the details od a given query
+     *
+     * @param queryId
+     * @param apiKey
+     * @return
+     * @throws IOException
+     * @throws EhrServerException
+     */
+    public String runQuery(String queryId, EhrQueryParameter queryParameter, String apiKey) throws IOException, EhrServerException {
+        if (StringUtils.isEmpty(queryId)) {
+            throw new IllegalArgumentException("Query Id expected");
+        }
+        Map<String, Object> params;
+        if (null != queryParameter) {
+            params = queryParameter.getRequestParameters();
+        } else {
+            params = new HashMap<>();
+            params.put("format", "json");
+        }
+        return String.valueOf(ehrRequestHandler.getRequest(routes.get("query.execute").replace(":queryId", queryId),
+                params, ResponseType.JSON, apiKey));
+    }
+
 }

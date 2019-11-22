@@ -11,13 +11,13 @@ import java.util.List;
 public class EhrListResponse extends EhrPageResult {
 
     @SerializedName("ehrs")
-    private List<HealthRecord> healthRecords;
+    private List<EhrHealthRecord> healthRecords;
 
-    public List<HealthRecord> getHealthRecords() {
+    public List<EhrHealthRecord> getHealthRecords() {
         return healthRecords;
     }
 
-    public void setHealthRecords(List<HealthRecord> healthRecords) {
+    public void setHealthRecords(List<EhrHealthRecord> healthRecords) {
         this.healthRecords = healthRecords;
     }
 }
