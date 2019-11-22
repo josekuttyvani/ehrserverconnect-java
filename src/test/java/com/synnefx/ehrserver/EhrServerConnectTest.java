@@ -37,7 +37,7 @@ public class EhrServerConnectTest {
 
     @Before
     public void setUp() {
-        ehrServerConnect = new EhrServerConnect(apiToken, true);
+        ehrServerConnect = new EhrServerConnect(true);
         pageRequest = new EhrPageRequest();
     }
 
@@ -107,7 +107,6 @@ public class EhrServerConnectTest {
     @Test
     public void testTemplateFetch() throws Exception, EhrServerException {
         TemplateDocument response = ehrServerConnect.getTemplate(Constants.TEMPLATE_ID, apiToken);
-
         System.out.println(response);
         assertNotNull("Template Details can't be null", response);
     }

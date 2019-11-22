@@ -53,31 +53,26 @@ public class EhrServerConnect {
     /**
      * Initializes EHRServerConnect SDK with the api key provided for your app.
      *
-     * @param apiKey is the api key provided after creating new Organization on developers console.
      */
-    public EhrServerConnect(String apiKey) {
-        this(apiKey, null, false);
+    public EhrServerConnect() {
+        this( null, false);
     }
 
     /**
      * Initializes EHRServerConnect SDK with the api key provided for your app.
-     *
-     * @param apiKey         is the api key provided after creating new Organization on developers console.
      * @param enableDebugLog is a boolean to enable debug logs
      */
-    public EhrServerConnect(String apiKey, boolean enableDebugLog) {
-        this(apiKey, null, enableDebugLog);
+    public EhrServerConnect(boolean enableDebugLog) {
+        this( null, enableDebugLog);
     }
 
     /**
      * Initializes EHRServerConnect SDK with the api key provided for your app.
      *
-     * @param apiKey    is the api key provided after creating new Organization on developers console.
      * @param userProxy is the user defined proxy. Can be used only if a user chose to use the proxy.
      */
-    public EhrServerConnect(String apiKey, Proxy userProxy, boolean enableDebugLog) {
+    public EhrServerConnect(Proxy userProxy, boolean enableDebugLog) {
         this.proxy = userProxy;
-        this.apiKey = apiKey;
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(Date.class, (JsonDeserializer<Date>) (jsonElement, type, jsonDeserializationContext) -> {
             try {
@@ -116,11 +111,11 @@ public class EhrServerConnect {
 
 
     private void setPageRequest(EhrPageRequest pageRequest, Map<String, Object> params) {
-        if (null == pageRequest) {
-            pageRequest = new EhrPageRequest();
+        if (null != pageRequest) {
+            params.put("max", pageRequest.getMaxRecords());
+            params.put("offSet", pageRequest.getOffset());
         }
-        params.put("max", pageRequest.getMaxRecords());
-        params.put("offSet", pageRequest.getOffset());
+
     }
 
     /**

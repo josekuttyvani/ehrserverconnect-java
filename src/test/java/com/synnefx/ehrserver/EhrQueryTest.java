@@ -32,7 +32,7 @@ public class EhrQueryTest {
 
     @Before
     public void setUp() {
-        ehrServerConnect = new EhrServerConnect(apiToken, true);
+        ehrServerConnect = new EhrServerConnect(true);
         pageRequest = new EhrPageRequest();
     }
 
