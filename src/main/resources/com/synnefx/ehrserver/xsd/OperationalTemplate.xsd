@@ -4,6 +4,7 @@
            elementFormDefault="qualified"
            targetNamespace="http://schemas.openehr.org/v1"
            id="OperationalTemplate.com.synnefx.ehrserver.xsd">
+	<xs:import namespace="http://www.w3.org/2001/XMLSchema-instance" schemaLocation="xsi.xsd"/>
    <xs:element name="template" type="OPERATIONAL_TEMPLATE"/>
    <xs:complexType name="OPERATIONAL_TEMPLATE">
       <xs:sequence>

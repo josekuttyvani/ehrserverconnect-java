@@ -7,12 +7,13 @@ import com.synnefx.ehrserver.models.ErrorResponse;
  */
 public class TokenException extends EhrServerException {
 
-    private ErrorResponse errorResponse;
 
-    public TokenException(String message, int code) {
-        super(message, code);
-        errorResponse = new ErrorResponse();
-        //JSONObject jsonObject = new JSONObject(message);
-        //errorResponse.setType();
+    public TokenException(String message, String ehrCode, int code) {
+        super(message, ehrCode, code);
     }
+
+    public TokenException(ErrorResponse errorResponse, int code) {
+        super(errorResponse.getMessage(), errorResponse.getCode(), code);
+    }
+
 }

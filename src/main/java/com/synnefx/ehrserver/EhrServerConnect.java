@@ -4,22 +4,19 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
 import com.synnefx.ehrserver.exception.EhrServerException;
-import com.synnefx.ehrserver.http.EhrRequestHandler;
-import com.synnefx.ehrserver.http.ResponseType;
-import com.synnefx.ehrserver.http.SessionExpiryHook;
+import com.synnefx.ehrserver.http.*;
 import com.synnefx.ehrserver.models.*;
 import com.synnefx.ehrserver.models.query.EhrQuery;
 import com.synnefx.ehrserver.models.query.EhrQueryParameter;
 import com.synnefx.ehrserver.utils.NotNull;
 import com.synnefx.ehrserver.utils.Nullable;
 import com.synnefx.ehrserver.utils.Utils;
-import com.synnefx.ehrserver.xsd.ORIGINALVERSION;
 import openEHR.v1.template.TemplateDocument;
 import org.apache.commons.lang.StringUtils;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.openehr.am.template.OETParser;
+import org.openehr.schemas.v1.VersionDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,7 +81,8 @@ public class EhrServerConnect {
         });
         gson = gsonBuilder.setDateFormat("yyyy-MM-dd HH:mm:ss").create();
         ENABLE_LOGGING = enableDebugLog;
-        ehrRequestHandler = new EhrRequestHandler(proxy);
+        ehrRequestHandler = new EhrRequestHandler(proxy, enableDebugLog);
+        this.setSessionExpiryHook(() -> LOGGER.info("EhrServer token expired"));
     }
 
     /**
@@ -137,7 +135,8 @@ public class EhrServerConnect {
         params.put("password", password);
         params.put("organization", organization);
         params.put("format", "json");
-        JSONObject jsonObject = ehrRequestHandler.postRequest(routes.get("api.login"), params, null);
+        JSONObject jsonObject = ehrRequestHandler.postRequest(params,
+                RequestMetaData.getInstance(routes.get("api.login"), ""));
         return jsonObject.getString("token");
     }
 
@@ -145,7 +144,8 @@ public class EhrServerConnect {
     public List<EhrOrganization> listOrganizations(String apiKey) throws IOException, EhrServerException {
         Map<String, Object> params = new HashMap<>();
         params.put("format", "json");
-        String response = ehrRequestHandler.getRequest(routes.get("organizations"), params, ResponseType.JSON, apiKey);
+        String response = ehrRequestHandler.getRequest(params, ResponseType.JSON,
+                RequestMetaData.getInstance(routes.get("organizations"), apiKey));
         return Arrays.asList(gson.fromJson(response, EhrOrganization[].class));
     }
 
@@ -153,7 +153,8 @@ public class EhrServerConnect {
         Map<String, Object> params = new HashMap<>();
         params.put("format", "json");
         setPageRequest(pageRequest, params);
-        JSONObject response = ehrRequestHandler.getRequest(routes.get("ehrs"), params, apiKey);
+        JSONObject response = ehrRequestHandler.getRequest(params,
+                RequestMetaData.getInstance(routes.get("ehrs"), apiKey));
         return Arrays.asList(gson.fromJson(String.valueOf(response.get("ehrs")), EhrHealthRecord[].class));
     }
 
@@ -163,7 +164,8 @@ public class EhrServerConnect {
         }
         Map<String, Object> params = new HashMap<>();
         params.put("format", "json");
-        JSONObject response = ehrRequestHandler.getRequest(routes.get("ehr").replace(":ehr_id", ehrId), params, apiKey);
+        JSONObject response = ehrRequestHandler.getRequest(params,
+                RequestMetaData.getInstance(routes.get("ehr").replace(":ehr_id", ehrId), apiKey));
         return gson.fromJson(String.valueOf(response), EhrHealthRecord.class);
     }
 
@@ -173,7 +175,8 @@ public class EhrServerConnect {
         }
         Map<String, Object> params = new HashMap<>();
         params.put("format", "json");
-        JSONObject response = ehrRequestHandler.getRequest(routes.get("ehr.subject").replace(":subjectId", subjectId), params, apiKey);
+        JSONObject response = ehrRequestHandler.getRequest(params,
+                RequestMetaData.getInstance(routes.get("ehr.subject").replace(":subjectId", subjectId), apiKey));
         return gson.fromJson(String.valueOf(response), EhrHealthRecord.class);
     }
 
@@ -181,7 +184,7 @@ public class EhrServerConnect {
         Map<String, Object> params = new HashMap<>();
         params.put("subjectUid", healthRecord.getSubjectUid());
         params.put("format", "json");
-        JSONObject response = ehrRequestHandler.postRequest(routes.get("ehrs"), params, apiKey);
+        JSONObject response = ehrRequestHandler.postRequest(params, RequestMetaData.getInstance(routes.get("ehrs"), apiKey));
         return gson.fromJson(String.valueOf(response), EhrHealthRecord.class);
     }
 
@@ -190,7 +193,7 @@ public class EhrServerConnect {
         Map<String, Object> params = new HashMap<>();
         params.put("format", "json");
         setPageRequest(pageRequest, params);
-        JSONObject response = ehrRequestHandler.getRequest(routes.get("templates"), params, apiKey);
+        JSONObject response = ehrRequestHandler.getRequest(params, RequestMetaData.getInstance(routes.get("templates"), apiKey));
         return Arrays.asList(gson.fromJson(String.valueOf(response.get("templates")), Template[].class));
     }
 
@@ -200,32 +203,70 @@ public class EhrServerConnect {
         }
         Map<String, Object> params = new HashMap<>();
         params.put("format", "xml");
-        String response = ehrRequestHandler.getRequest(routes.get("template")
-                .replace(":uid", templateUid), params, ResponseType.XML, apiKey);
+        String response = ehrRequestHandler.getRequest(params, ResponseType.XML,
+                RequestMetaData.getInstance(routes.get("template").replace(":uid", templateUid), apiKey));
         //return Arrays.asList(gson.fromJson(String.valueOf(response.get("templates")), Template[].class));
         OETParser oetParser = new OETParser();
         return oetParser.parseTemplate(new ByteArrayInputStream(response.getBytes(StandardCharsets.UTF_8)));
         //return String.valueOf(response);
     }
 
+
+    /**
+     * Create or Check in a composition
+     *
+     * @param composition
+     * @param committerName
+     * @param ehrId
+     * @param apiKey
+     * @return
+     * @throws IOException
+     * @throws EhrServerException
+     */
     public String createComposition(String composition, String committerName, String ehrId, String apiKey) throws IOException, EhrServerException {
         Map<String, Object> params = new HashMap<>();
         params.put("auditCommitter", committerName);
         params.put("format", "xml");
-        return ehrRequestHandler.postRequestForXml(routes.get("compositions").replace(":ehr_id", ehrId),
-                composition, params, apiKey);
-        //return gson.fromJson(String.valueOf(response), HealthRecord.class);
-        //return  String.valueOf(response);
+        return ehrRequestHandler.postRequestForXml(composition, params,
+                RequestMetaData.getInstance(routes.get("compositions").replace(":ehr_id", ehrId), apiKey));
     }
 
-    public String createComposition(ORIGINALVERSION versions, String committerName, String ehrId, String apiKey) throws IOException, EhrServerException {
+    /**
+     * Create or Check in a composition
+     *
+     * @param version
+     * @param committerName
+     * @param ehrId
+     * @param apiKey
+     * @return
+     * @throws IOException
+     * @throws EhrServerException
+     */
+    public String createComposition(VersionDocument version, String committerName, String ehrId, String apiKey) throws IOException, EhrServerException {
         Map<String, Object> params = new HashMap<>();
         params.put("auditCommitter", committerName);
         params.put("format", "xml");
-        return ehrRequestHandler.postRequestForXml(routes.get("compositions").replace(":ehr_id", ehrId),
-                Utils.formatComposionPaylod(versions), params, apiKey);
-        //return gson.fromJson(String.valueOf(response), HealthRecord.class);
-        // return  String.valueOf(response);
+        return ehrRequestHandler.postRequestForXml(Utils.formatCompositionPaylod(version), params,
+                RequestMetaData.getInstance(routes.get("compositions").replace(":ehr_id", ehrId), apiKey));
+    }
+
+    /**
+     * @param version
+     * @param committerName
+     * @param ehrId
+     * @param apiKey
+     * @throws IOException
+     * @throws EhrServerException
+     */
+    public void sendComposition(VersionDocument version, String committerName, String ehrId, String apiKey, AsyncResponseHandler responseHandler) throws IOException, EhrServerException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("auditCommitter", committerName);
+        params.put("format", "xml");
+        ehrRequestHandler.postAsyncRequest(
+                HttpMediaType.XML,
+                Utils.formatCompositionPaylod(version), params,
+                RequestMetaData.getInstance(routes.get("compositions").replace(":ehr_id", ehrId), apiKey),
+                responseHandler);
     }
 
     private List<EhrComposition> listCompositions(Map<String, Object> params, String archetypeId, String apiKey, EhrPageRequest pageRequest) throws IOException, EhrServerException {
@@ -235,11 +276,10 @@ public class EhrServerConnect {
 
         params.put("format", "json");
         setPageRequest(pageRequest, params);
-        JSONObject response = ehrRequestHandler.getRequest(routes.get("compositions.list"),
-                params, apiKey);
+        JSONObject response = ehrRequestHandler.getRequest(params,
+                RequestMetaData.getInstance(routes.get("compositions.list"), apiKey));
         Object result = response.get("result");
         if (result instanceof JSONObject) {
-            //Must be JSONArray
             return Collections.emptyList();
         }
         return Arrays.asList(gson.fromJson(String.valueOf(result), EhrComposition[].class));
@@ -306,9 +346,9 @@ public class EhrServerConnect {
         }
         Map<String, Object> params = new HashMap<>();
         params.put("format", "xml");
-        return ehrRequestHandler.getRequest(routes.get("compositions.get")
-                        .replace(":compositionUid",compositionUid),
-                params, ResponseType.XML, apiKey);
+        return ehrRequestHandler.getRequest(params, ResponseType.XML,
+                RequestMetaData.getInstance(routes.get("compositions.get")
+                        .replace(":compositionUid", compositionUid), apiKey));
         //return gson.fromJson(String.valueOf(response.get("result")), EhrComposition[].class);
     }
 
@@ -328,10 +368,10 @@ public class EhrServerConnect {
         }
         Map<String, Object> params = new HashMap<>();
         params.put("format", "xml");
-        return ehrRequestHandler.getRequest(routes.get("compositions.checkout")
+        return ehrRequestHandler.getRequest(params, ResponseType.XML,
+                RequestMetaData.getInstance(routes.get("compositions.checkout")
                         .replace(":ehr_id", ehrId)
-                        .replace(":compositionUid", compositionUid),
-                params, ResponseType.XML, apiKey);
+                        .replace(":compositionUid", compositionUid), apiKey));
         //return gson.fromJson(String.valueOf(response.get("result")), EhrComposition[].class);
     }
 
@@ -350,8 +390,8 @@ public class EhrServerConnect {
         Map<String, Object> params = new HashMap<>();
         params.put("format", "json");
         setPageRequest(pageRequest, params);
-        JSONObject response = ehrRequestHandler.getRequest(routes.get("queries"),
-                params, apiKey);
+        JSONObject response = ehrRequestHandler.getRequest(params,
+                RequestMetaData.getInstance(routes.get("queries"), apiKey));
         Object queryList = response.get("queries");
         if (queryList instanceof JSONObject) {
             //When query list is empty returned json is JSONObject not JSONArray.
@@ -376,9 +416,8 @@ public class EhrServerConnect {
         }
         Map<String, Object> params = new HashMap<>();
         params.put("format", "json");
-        return gson.fromJson(String.valueOf(ehrRequestHandler.getRequest(routes.get("query")
-                        .replace(":queryId", queryId),
-                params, apiKey)), EhrQuery.class);
+        return gson.fromJson(String.valueOf(ehrRequestHandler.getRequest(params,
+                RequestMetaData.getInstance(routes.get("query").replace(":queryId", queryId), apiKey))), EhrQuery.class);
     }
 
 
@@ -402,8 +441,8 @@ public class EhrServerConnect {
             params = new HashMap<>();
             params.put("format", "json");
         }
-        return String.valueOf(ehrRequestHandler.getRequest(routes.get("query.execute").replace(":queryId", queryId),
-                params, ResponseType.JSON, apiKey));
+        return String.valueOf(ehrRequestHandler.getRequest(
+                params, ResponseType.JSON, RequestMetaData.getInstance(routes.get("query.execute").replace(":queryId", queryId), apiKey)));
     }
 
 }

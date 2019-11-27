@@ -1,8 +1,7 @@
 package com.synnefx.ehrserver;
 
-import com.synnefx.ehrserver.exception.DataException;
 import com.synnefx.ehrserver.exception.EhrServerException;
-import com.synnefx.ehrserver.exception.PermissionException;
+import com.synnefx.ehrserver.exception.TokenException;
 import com.synnefx.ehrserver.models.EhrHealthRecord;
 import com.synnefx.ehrserver.models.EhrOrganization;
 import com.synnefx.ehrserver.models.EhrPageRequest;
@@ -46,7 +45,7 @@ public class EhrServerConnectTest {
         getToken();
     }
 
-    @Test(expected = PermissionException.class)
+    @Test(expected = TokenException.class)
     public void testLoginFail() throws EhrServerException, IOException {
         ehrServerConnect.generateAccessToken("admin", "455", "123456");
     }
@@ -80,7 +79,7 @@ public class EhrServerConnectTest {
         assertEquals("HealthRecord fetched is wrong one!", Constants.SUBJECT_ID, healthRecord.getSubjectUid());
     }
 
-    @Test(expected = DataException.class)
+    @Test(expected = EhrServerException.class)
     public void testHealthRecordNotFound() throws IOException, EhrServerException {
         EhrHealthRecord healthRecord = ehrServerConnect.getHealthRecord("dummy ehr id", apiToken);
         assertNull("HealthRecord must be null", healthRecord);
@@ -111,8 +110,8 @@ public class EhrServerConnectTest {
         assertNotNull("Template Details can't be null", response);
     }
 
-    @Test
-    public void testNewComposition() throws IOException, EhrServerException {
+    @Test(expected = EhrServerException.class)
+    public void testEmptyRequestComposition() throws IOException, EhrServerException {
         String payLoad = "";
         String response = ehrServerConnect.createComposition(payLoad, "Josekutty", ehrId, apiToken);
         assertNotNull("Create composition response can't be null", response);

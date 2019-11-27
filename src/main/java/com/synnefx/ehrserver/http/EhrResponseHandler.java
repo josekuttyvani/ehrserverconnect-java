@@ -1,7 +1,11 @@
 package com.synnefx.ehrserver.http;
 
+import com.google.gson.GsonBuilder;
 import com.synnefx.ehrserver.EhrServerConnect;
 import com.synnefx.ehrserver.exception.*;
+import com.synnefx.ehrserver.models.EhrErrorResponse;
+import com.synnefx.ehrserver.models.ErrorResponse;
+import com.synnefx.ehrserver.utils.Utils;
 import okhttp3.Response;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,16 +23,12 @@ public class EhrResponseHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger("EHRConnect");
 
 
-    private boolean isOk(Response response) throws IOException, PermissionException, TokenException {
+    private boolean isOk(Response response) {
         switch (response.code()) {
             case 200:
             case 201:
             case 202:
                 return true;
-            case 401:
-                throw new PermissionException(response.body().string(), response.code());
-            case 403:
-                throw new TokenException(response.body().string(), response.code());
             default:
                 return false;
 
@@ -43,13 +43,13 @@ public class EhrResponseHandler {
             if (response.header("Content-Type").contains("json")) {
                 String body = response.body().string();
                 JSONObject jsonObject = new JSONObject(body);
-                if (jsonObject.has("error_type")) {
-                    throw handleException(jsonObject, response.code());
-                }
+                /*if (jsonObject.has("error_type")) {
+                    throw handleErrorResponse(jsonObject, response.code());
+                }*/
                 return jsonObject;
             }
         }
-        throw new DataException("Unexpected content type received from server: " + response.header("Content-Type") + " " + response.body().string(), 502);
+        throw handleErrorResponse(getErrorResponse(response), response.code());
     }
 
 
@@ -66,43 +66,45 @@ public class EhrResponseHandler {
                 return body;
             }
         }
-        throw new DataException("Unexpected content type received from server: " + response.header("Content-Type") + " " + response.body().string(), 502);
+        throw handleErrorResponse(getErrorResponse(response), response.code());
+    }
+
+    private ErrorResponse getErrorResponse(Response response) throws IOException {
+        if (response.header("Content-Type").contains("xml")) {
+            return Utils.parseXmlErrorResponse(response.body().string());
+        } else if (response.header("Content-Type").contains("json")) {
+            //throw handleException(new JSONObject(body), response.code());
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            return gsonBuilder.create().fromJson(String.valueOf(new JSONObject(response.body().string())), EhrErrorResponse.class).getResult();
+        }
+        return null;
     }
 
 
-    private EhrServerException handleException(JSONObject jsonObject, int code) throws JSONException {
-        if (jsonObject.has("code")) {
-            String ehrErrorCode = jsonObject.getString("message");
-            switch (ehrErrorCode) {
+    private EhrServerException handleErrorResponse(ErrorResponse errorResponse, int code) throws JSONException {
+        if (null != errorResponse) {
+            //switch (errorResponse.getCode()) {
+            switch (code) {
                 // if there is a token exception, generate a signal to logout the user.
-                case "TokenException":
+                case 401:
                     if (EhrServerConnect.sessionExpiryHook != null) {
                         EhrServerConnect.sessionExpiryHook.sessionExpired();
                     }
-                    return new TokenException(jsonObject.getString("message"), code);
-
-                case "DataException":
-                    return new DataException(jsonObject.getString("message"), code);
-
-                case "GeneralException":
-                    return new GeneralException(jsonObject.getString("message"), code);
-
-                case "InputException":
-                    return new InputException(jsonObject.getString("message"), code);
-
+                    return new TokenException(errorResponse, code);
+                case 400:
+                    return new DataException(errorResponse, code);
+                case 500:
+                    return new EhrServerException(errorResponse.getMessage(), errorResponse.getCode(), code);
+               /* case "InputException":
+                    return new InputException(errorResponse, code);
                 case "NetworkException":
-                    return new NetworkException(jsonObject.getString("message"), code);
-
-                case "PermissionException":
-                    return new PermissionException(jsonObject.getString("message"), code);
-
+                    return new NetworkException(errorResponse, code);*/
+                case 403:
+                    return new PermissionException(errorResponse, code);
                 default:
-                    return new EhrServerException(jsonObject.getString("message"), code);
+                    return new GeneralException(errorResponse, code);
             }
         }
-
-        return new EhrServerException(jsonObject.getString("message"), code);
-
+        return new EhrServerException(errorResponse.getMessage(), errorResponse.getCode(), code);
     }
-
 }
