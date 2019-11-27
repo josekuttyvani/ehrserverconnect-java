@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://schemas.openehr.org/v1" xmlns:v1="http://schemas.openehr.org/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <xs:import namespace="http://www.w3.org/2001/XMLSchema-instance" schemaLocation="xsi.xsd"/>
+    <xs:import namespace="http://schemas.openehr.org/v1" schemaLocation="xsi.xsd"/>
     <xs:element name="versions">
         <xs:complexType>
             <xs:sequence>

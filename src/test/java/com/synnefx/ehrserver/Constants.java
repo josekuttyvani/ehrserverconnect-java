@@ -13,4 +13,11 @@ public class Constants {
     public static final String SUBJECT_ID = "2faf46fe-adef-4849-abb7-633dd4861aa9";
 
     public static final String TEMPLATE_ID = "68b90210-bc5e-4d92-96db-9c2e6405e293";
+
+    public static final String COMPOSITION_UID = "72c725ec-5faf-4b35-835a-8db74c80b4e6";
+
+    //public static final String COMPOSITION_FILE_NAME = "Physical Activity Composition Request.xml";
+
+    public static final String COMPOSITION_FILE_NAME = "Blood Pressure.xml";
+    public static final String ARCHETYPE_ID = "openEHR-EHR-COMPOSITION.physical_activity_document.v1";
 }
