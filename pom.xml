@@ -6,7 +6,7 @@
 
     <groupId>com.synnefx.ehrserver</groupId>
     <artifactId>ehrconnect</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1</version>
 
     <name>ehrconnect</name>
     <!-- FIXME change it to the project's website -->
